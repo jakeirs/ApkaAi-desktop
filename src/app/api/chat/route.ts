@@ -42,7 +42,9 @@ export async function POST(request: Request) {
     });
 
     if (!response.ok) {
-      throw new Error(`Anthropic API error: ${response.statusText}`);
+      const errorData = await response.json().catch(() => null);
+      const errorMessage = errorData?.error?.message || response.statusText;
+      throw new Error(`Anthropic API error: ${errorMessage}`);
     }
 
     const data = await response.json();
@@ -66,10 +68,10 @@ export async function POST(request: Request) {
         total_cost: totalCost.toFixed(6)
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in chat API:', error);
     return NextResponse.json(
-      { error: 'Failed to process chat request' },
+      { error: error.message || 'Failed to process chat request' },
       { status: 500 }
     );
   }

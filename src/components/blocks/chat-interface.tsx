@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
+  isError?: boolean;
   usage?: {
     input_tokens: number;
     output_tokens: number;
@@ -20,6 +21,15 @@ export function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]); // Scroll when messages change
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,11 +51,11 @@ export function ChatInterface() {
         body: JSON.stringify({ message: userMessage }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to get response');
-      }
-
       const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to get response');
+      }
       
       // Add assistant message to chat with usage data
       setMessages(prev => [...prev, { 
@@ -53,9 +63,13 @@ export function ChatInterface() {
         content: data.message,
         usage: data.usage
       }]);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error:', error);
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, there was an error processing your request.' }]);
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: error.message || 'An error occurred while processing your request.',
+        isError: true 
+      }]);
     } finally {
       setIsLoading(false);
     }
@@ -70,6 +84,8 @@ export function ChatInterface() {
               className={`p-4 rounded-lg ${
                 message.role === 'user'
                   ? 'bg-blue-100 ml-auto max-w-[80%]'
+                  : message.isError
+                  ? 'bg-red-100 text-red-700 mr-auto max-w-[80%]'
                   : 'bg-gray-100 mr-auto max-w-[80%]'
               }`}
             >
@@ -88,6 +104,7 @@ export function ChatInterface() {
             Thinking...
           </div>
         )}
+        <div ref={messagesEndRef} /> {/* Invisible element to scroll to */}
       </div>
       <form onSubmit={handleSubmit} className="flex gap-2">
         <Input
