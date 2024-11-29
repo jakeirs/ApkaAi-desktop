@@ -11,7 +11,7 @@ function calculateCost(tokens: number, costPerMTok: number): number {
 
 export async function POST(request: Request) {
   try {
-    const { message } = await request.json();
+    const { messages } = await request.json();
     const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 
     if (!ANTHROPIC_API_KEY) {
@@ -21,6 +21,12 @@ export async function POST(request: Request) {
       );
     }
 
+    // Convert our messages format to Anthropic's format
+    const anthropicMessages = messages.map((msg: any) => ({
+      role: msg.role,
+      content: msg.content,
+    }));
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -29,15 +35,9 @@ export async function POST(request: Request) {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        // model: 'claude-3-5-sonnet-20241022',
         model: 'claude-3-5-haiku-20241022',
         max_tokens: 1024,
-        messages: [
-          {
-            role: 'user',
-            content: message,
-          },
-        ],
+        messages: anthropicMessages,
       }),
     });
 

@@ -36,12 +36,13 @@ export function ChatInterface() {
     e.preventDefault();
     if (!input.trim()) return;
 
-    const userMessage = input.trim();
+    const userMessage: Message = { role: 'user', content: input.trim() };
     setInput('');
     setIsLoading(true);
 
     // Add user message to chat
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    const newMessages: Message[] = [...messages, userMessage];
+    setMessages(newMessages);
 
     try {
       const response = await fetch('/api/chat', {
@@ -49,7 +50,12 @@ export function ChatInterface() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message: userMessage }),
+        body: JSON.stringify({ 
+          messages: newMessages.map(msg => ({
+            role: msg.role,
+            content: msg.content
+          }))
+        }),
       });
 
       const data = await response.json();
@@ -59,15 +65,15 @@ export function ChatInterface() {
       }
       
       // Add assistant message to chat with usage data
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
+      setMessages(messages => [...messages, { 
+        role: 'assistant' as const, 
         content: data.message,
         usage: data.usage
       }]);
     } catch (error: any) {
       console.error('Error:', error);
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
+      setMessages(messages => [...messages, { 
+        role: 'assistant' as const, 
         content: error.message || 'An error occurred while processing your request.',
         isError: true 
       }]);
@@ -141,7 +147,7 @@ export function ChatInterface() {
             Thinking...
           </div>
         )}
-        <div ref={messagesEndRef} /> {/* Invisible element to scroll to */}
+        <div ref={messagesEndRef} />
       </div>
       <form onSubmit={handleSubmit} className="flex gap-2">
         <Input
