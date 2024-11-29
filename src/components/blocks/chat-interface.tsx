@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import ReactMarkdown from 'react-markdown';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -89,7 +90,43 @@ export function ChatInterface() {
                   : 'bg-gray-100 mr-auto max-w-[80%]'
               }`}
             >
-              {message.content}
+              {message.role === 'assistant' ? (
+                <div className="prose prose-sm max-w-none dark:prose-invert">
+                  <ReactMarkdown
+                    components={{
+                      h1: ({ children }) => <h1 className="text-2xl font-bold mb-4">{children}</h1>,
+                      h2: ({ children }) => <h2 className="text-xl font-bold mb-3">{children}</h2>,
+                      h3: ({ children }) => <h3 className="text-lg font-bold mb-2">{children}</h3>,
+                      p: ({ children }) => <p className="mb-4">{children}</p>,
+                      ul: ({ children }) => <ul className="list-disc pl-6 mb-4">{children}</ul>,
+                      ol: ({ children }) => <ol className="list-decimal pl-6 mb-4">{children}</ol>,
+                      li: ({ children }) => <li className="mb-1">{children}</li>,
+                      code: ({ className, children }) => {
+                        const isBlock = /language-(\w+)/.exec(className || '');
+                        return (
+                          <code 
+                            className={`${isBlock 
+                              ? 'block bg-gray-200 dark:bg-gray-800 p-3 rounded-lg mb-4 overflow-x-auto' 
+                              : 'bg-gray-200 dark:bg-gray-800 px-1 py-0.5 rounded'}`}
+                          >
+                            {children}
+                          </code>
+                        );
+                      },
+                      pre: ({ children }) => <pre className="mb-4">{children}</pre>,
+                      blockquote: ({ children }) => (
+                        <blockquote className="border-l-4 border-gray-300 pl-4 italic mb-4">
+                          {children}
+                        </blockquote>
+                      ),
+                    }}
+                  >
+                    {message.content}
+                  </ReactMarkdown>
+                </div>
+              ) : (
+                message.content
+              )}
             </div>
             {message.role === 'assistant' && message.usage && (
               <div className="text-xs text-gray-500 mt-1 ml-2">
