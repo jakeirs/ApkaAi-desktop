@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { ChatWindow } from './chat-window';
 
 interface Message {
@@ -23,6 +22,7 @@ export function ChatInterface() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -31,6 +31,15 @@ export function ChatInterface() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]); // Scroll when messages change
+
+  // Auto-resize textarea as content changes
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  }, [input]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,6 +91,13 @@ export function ChatInterface() {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
+    }
+  };
+
   return (
     <div className="flex flex-col h-[600px] max-w-2xl mx-auto p-4 space-y-4">
       <ChatWindow 
@@ -90,12 +106,15 @@ export function ChatInterface() {
         messagesEndRef={messagesEndRef}
       />
       <form onSubmit={handleSubmit} className="flex gap-2">
-        <Input
+        <textarea
+          ref={textareaRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Type your message..."
+          onKeyDown={handleKeyDown}
+          placeholder="Type your message... (Press Shift + Enter for new line)"
           disabled={isLoading}
-          className="flex-1"
+          className="flex-1 min-h-[60px] max-h-[300px] p-2 rounded-md border border-input bg-background"
+          rows={2}
         />
         <Button type="submit" disabled={isLoading}>
           Send
