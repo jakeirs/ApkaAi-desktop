@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { ChatWindow } from './chat-window';
+import { useState, useRef, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { ChatWindow } from "./chat-window";
 
 interface Message {
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
   isError?: boolean;
   usage?: {
@@ -19,7 +19,7 @@ interface Message {
 
 export function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -36,7 +36,7 @@ export function ChatInterface() {
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
-      textarea.style.height = 'auto';
+      textarea.style.height = "auto";
       textarea.style.height = `${textarea.scrollHeight}px`;
     }
   }, [input]);
@@ -45,8 +45,8 @@ export function ChatInterface() {
     e.preventDefault();
     if (!input.trim()) return;
 
-    const userMessage: Message = { role: 'user', content: input.trim() };
-    setInput('');
+    const userMessage: Message = { role: "user", content: input.trim() };
+    setInput("");
     setIsLoading(true);
 
     // Add user message to chat
@@ -54,53 +54,60 @@ export function ChatInterface() {
     setMessages(newMessages);
 
     try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
+      const response = await fetch("/api/chat", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ 
-          messages: newMessages.map(msg => ({
+        body: JSON.stringify({
+          messages: newMessages.map((msg) => ({
             role: msg.role,
-            content: msg.content
-          }))
+            content: msg.content,
+          })),
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to get response');
+        throw new Error(data.error || "Failed to get response");
       }
-      
+
       // Add assistant message to chat with usage data
-      setMessages(messages => [...messages, { 
-        role: 'assistant' as const, 
-        content: data.message,
-        usage: data.usage
-      }]);
+      setMessages((messages) => [
+        ...messages,
+        {
+          role: "assistant" as const,
+          content: data.message,
+          usage: data.usage,
+        },
+      ]);
     } catch (error: any) {
-      console.error('Error:', error);
-      setMessages(messages => [...messages, { 
-        role: 'assistant' as const, 
-        content: error.message || 'An error occurred while processing your request.',
-        isError: true 
-      }]);
+      console.error("Error:", error);
+      setMessages((messages) => [
+        ...messages,
+        {
+          role: "assistant" as const,
+          content:
+            error.message || "An error occurred while processing your request.",
+          isError: true,
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
     }
   };
 
   return (
-    <div className="flex flex-col h-[600px] max-w-2xl mx-auto p-4 space-y-4">
-      <ChatWindow 
+    <div className="flex flex-col h-[600px] max-w-[1200px] mx-auto p-4 space-y-4">
+      <ChatWindow
         messages={messages}
         isLoading={isLoading}
         messagesEndRef={messagesEndRef}

@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { RefObject } from 'react';
-import ReactMarkdown from 'react-markdown';
+import { RefObject } from "react";
+import ReactMarkdown from "react-markdown";
 
 interface Message {
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
   isError?: boolean;
   usage?: {
@@ -22,52 +22,68 @@ interface ChatWindowProps {
   messagesEndRef: RefObject<HTMLDivElement>;
 }
 
-export function ChatWindow({ messages, isLoading, messagesEndRef }: ChatWindowProps) {
+export function ChatWindow({
+  messages,
+  isLoading,
+  messagesEndRef,
+}: ChatWindowProps) {
   return (
     <div className="flex-1 overflow-y-auto space-y-4 p-4 rounded-lg border">
       {messages.map((message, index) => (
         <div key={index}>
           <div
             className={`p-4 rounded-lg ${
-              message.role === 'user'
-                ? 'bg-blue-100 ml-auto max-w-[80%]'
+              message.role === "user"
+                ? "bg-blue-100 ml-auto max-w-[80%]"
                 : message.isError
-                ? 'bg-red-100 text-red-700 mr-auto max-w-[80%]'
-                : 'bg-gray-100 mr-auto max-w-[80%]'
+                  ? "bg-red-100 text-red-700 mr-auto max-w-[80%]"
+                  : "bg-gray-100 mr-auto max-w-[80%]"
             }`}
           >
-            {message.role === 'assistant' ? (
+            {message.role === "assistant" ? (
               <div className="prose prose-sm max-w-none dark:prose-invert">
                 <ReactMarkdown
                   components={{
                     h1: function H1({ children }) {
-                      return <h1 className="text-2xl font-bold mb-4">{children}</h1>;
+                      return (
+                        <h1 className="text-2xl font-bold mb-4">{children}</h1>
+                      );
                     },
                     h2: function H2({ children }) {
-                      return <h2 className="text-xl font-bold mb-3">{children}</h2>;
+                      return (
+                        <h2 className="text-xl font-bold mb-3">{children}</h2>
+                      );
                     },
                     h3: function H3({ children }) {
-                      return <h3 className="text-lg font-bold mb-2">{children}</h3>;
+                      return (
+                        <h3 className="text-lg font-bold mb-2">{children}</h3>
+                      );
                     },
                     p: function Paragraph({ children }) {
                       return <p className="mb-4">{children}</p>;
                     },
                     ul: function UnorderedList({ children }) {
-                      return <ul className="list-disc pl-6 mb-4">{children}</ul>;
+                      return (
+                        <ul className="list-disc pl-6 mb-4">{children}</ul>
+                      );
                     },
                     ol: function OrderedList({ children }) {
-                      return <ol className="list-decimal pl-6 mb-4">{children}</ol>;
+                      return (
+                        <ol className="list-decimal pl-6 mb-4">{children}</ol>
+                      );
                     },
                     li: function ListItem({ children }) {
                       return <li className="mb-1">{children}</li>;
                     },
                     code: function Code({ className, children }) {
-                      const isBlock = /language-(\w+)/.exec(className || '');
+                      const isBlock = /language-(\w+)/.exec(className || "");
                       return (
-                        <code 
-                          className={`${isBlock 
-                            ? 'block bg-gray-200 dark:bg-gray-800 p-3 rounded-lg mb-4 overflow-x-auto' 
-                            : 'bg-gray-200 dark:bg-gray-800 px-1 py-0.5 rounded'}`}
+                        <code
+                          className={`${
+                            isBlock
+                              ? "block bg-gray-200 dark:bg-gray-800 p-3 rounded-lg mb-4 overflow-x-auto"
+                              : "bg-gray-200 dark:bg-gray-800 px-1 py-0.5 rounded"
+                          }`}
                         >
                           {children}
                         </code>
@@ -92,10 +108,12 @@ export function ChatWindow({ messages, isLoading, messagesEndRef }: ChatWindowPr
               message.content
             )}
           </div>
-          {message.role === 'assistant' && message.usage && (
+          {message.role === "assistant" && message.usage && (
             <div className="text-xs text-gray-500 mt-1 ml-2">
-              Tokens: {message.usage.input_tokens} in / {message.usage.output_tokens} out • 
-              Cost: ${message.usage.total_cost} (${message.usage.input_cost} in / ${message.usage.output_cost} out)
+              Tokens: {message.usage.input_tokens} in /{" "}
+              {message.usage.output_tokens} out • Cost: $
+              {message.usage.total_cost} (${message.usage.input_cost} in / $
+              {message.usage.output_cost} out)
             </div>
           )}
         </div>
