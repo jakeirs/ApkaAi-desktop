@@ -17,12 +17,46 @@ interface Message {
   };
 }
 
+const STORAGE_KEY = "chat-history";
+
 export function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Set isClient to true once the component mounts
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Load messages from localStorage on mount
+  useEffect(() => {
+    if (isClient) {
+      try {
+        const savedMessages = localStorage.getItem(STORAGE_KEY);
+        if (savedMessages) {
+          const parsedMessages = JSON.parse(savedMessages);
+          setMessages(parsedMessages);
+        }
+      } catch (error) {
+        console.error("Error loading chat history:", error);
+      }
+    }
+  }, [isClient]);
+
+  // Save messages to localStorage whenever they change
+  useEffect(() => {
+    if (isClient && messages.length > 0) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+      } catch (error) {
+        console.error("Error saving chat history:", error);
+      }
+    }
+  }, [messages, isClient]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -74,8 +108,8 @@ export function ChatInterface() {
       }
 
       // Add assistant message to chat with usage data
-      setMessages((messages) => [
-        ...messages,
+      setMessages((prevMessages) => [
+        ...prevMessages,
         {
           role: "assistant" as const,
           content: data.message,
@@ -84,8 +118,8 @@ export function ChatInterface() {
       ]);
     } catch (error: any) {
       console.error("Error:", error);
-      setMessages((messages) => [
-        ...messages,
+      setMessages((prevMessages) => [
+        ...prevMessages,
         {
           role: "assistant" as const,
           content:
@@ -105,8 +139,15 @@ export function ChatInterface() {
     }
   };
 
+  const handleReset = () => {
+    setMessages([]);
+    if (isClient) {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  };
+
   return (
-    <div className="flex flex-col h-[600px] max-w-[1200px] mx-auto p-4 space-y-4">
+    <div className="flex flex-col h-[700px] max-w-[1200px] mx-auto p-4 space-y-4">
       <ChatWindow
         messages={messages}
         isLoading={isLoading}
@@ -125,6 +166,14 @@ export function ChatInterface() {
         />
         <Button type="submit" disabled={isLoading}>
           Send
+        </Button>
+        <Button
+          onClick={handleReset}
+          variant="destructive"
+          size="sm"
+          className="text-sm"
+        >
+          Reset History
         </Button>
       </form>
     </div>
